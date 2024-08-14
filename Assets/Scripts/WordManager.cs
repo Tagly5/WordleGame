@@ -8,6 +8,7 @@ using UnityEngine.Events;
 using Random = UnityEngine.Random;
 using DG.Tweening;
 using UnityEngine.SceneManagement;
+using System.IO;
 
 
 [System.Serializable]
@@ -27,7 +28,7 @@ public class WordManager : MonoBehaviour
 
     int _rightLetterGuesses = 0;
     public bool hasWon;
-    public string[] wordList;
+    public List<string> wordList = new List<string>();
     public string chosenWord;
     public Word[] words;
 
@@ -40,10 +41,19 @@ public class WordManager : MonoBehaviour
     private readonly int _letterQty = 5;
     public GameObject NotAWord;
 
+    [SerializeField] TextAsset file;
+
 
     void Start()
     {
-        chosenWord = wordList[Random.Range(0, wordList.Length)].ToUpper();
+        String stringas = file.text;
+        String[] wordsSplitted = stringas.Split("\n");
+        for (int i = 0; i < wordsSplitted.Length; i++)
+        {
+            wordList.Add(wordsSplitted[i]);
+        }
+        
+        chosenWord = wordList[Random.Range(0, wordList.Count)].ToUpper();
         keyButtons = FindObjectsOfType<KeyButton>();
 
 
