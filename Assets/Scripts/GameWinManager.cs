@@ -1,48 +1,70 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.SearchService;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameWinManager : MonoBehaviour
 {
 
-    public bool winState;
     public GameObject winScreen;
-    
-    
-    
+    public GameObject loseScreen;
+    public bool gameHasEnded = false;
+
+    public int letterGroupWonCounter = 0;
+
     public List<WordManager> wordManagers;
 
     private void Start()
     {
         winScreen.gameObject.SetActive(false);
+        loseScreen.gameObject.SetActive(false);
+    }
+
+    void Update()
+    {
+        if (letterGroupWonCounter == 4 && !gameHasEnded)
+        {
+            foreach (var wordManager in wordManagers)
+            {
+                if (wordManager.hasWon == false)
+                {
+                    CheckLoseState();
+                    Debug.Log("perdeu");
+                    gameHasEnded = true;
+                    return;
+                }
+            }
+            CheckWinState();
+            Debug.Log("ganhou");
+            gameHasEnded = true;
+        }
+    }
+
+    private void CheckLoseState()
+    {
+        StartCoroutine(LoseScreenTimeDelay());
     }
 
     private void OnEnable()
     {
         foreach (var wordManager in wordManagers)
         {
-            wordManager.groupWonEvent.AddListener(OnGroupWon);
+            wordManager.groupWonEvent.AddListener(OnGroupWonOrLost);
+            wordManager.groupLostEvent.AddListener(OnGroupWonOrLost);
         }
     }
-    
 
-    private void OnGroupWon()
+    private void OnGroupWonOrLost()
     {
-        foreach (var wordManager in wordManagers)
-        {
-            if (wordManager.hasWon == false)
-            {
-                return;
-            }
-        }
-
-        CheckWinState();
+        letterGroupWonCounter++;
     }
     public void CheckWinState()
     {
         var winScreenTimeDelay = WinScreenTimeDelay();
         StartCoroutine(winScreenTimeDelay);
-        
+
     }
 
     IEnumerator WinScreenTimeDelay()
@@ -50,5 +72,19 @@ public class GameWinManager : MonoBehaviour
         yield return new WaitForSeconds(1.3f);
 
         winScreen.gameObject.SetActive(true);
+    }
+    IEnumerator LoseScreenTimeDelay()
+    {
+        yield return new WaitForSeconds(1.3f);
+
+        loseScreen.gameObject.SetActive(true);
+    }
+    public void ReloadGame()
+    {
+        SceneManager.LoadScene("Game");
+    }
+    public void QuitGame()
+    {
+        Application.Quit();
     }
 }
