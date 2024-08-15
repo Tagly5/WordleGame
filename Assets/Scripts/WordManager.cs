@@ -10,6 +10,7 @@ using DG.Tweening;
 using UnityEngine.SceneManagement;
 using System.IO;
 using UnityEngine.Rendering;
+using Unity.VisualScripting;
 
 
 [System.Serializable]
@@ -97,7 +98,7 @@ public class WordManager : MonoBehaviour
     public void CheckWord()
     {
         NotAWord.gameObject.SetActive(false);
-        
+
         List<string> leftLetters = chosenWord.Select(x => x.ToString()).ToList();
         string wordWritten = "";
 
@@ -127,7 +128,6 @@ public class WordManager : MonoBehaviour
         for (int i = 0; i < words[_wordIndex].letters.Length; i++)
         {
             chosenWord = chosenWord.ToUpper();
-
 
 
             if (words[_wordIndex].letters[i].text.Contains(chosenWord[i])) // Achou a letra certa na posicao certa!

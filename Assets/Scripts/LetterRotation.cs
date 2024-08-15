@@ -13,7 +13,7 @@ public class LetterRotation : MonoBehaviour
     
     public void Rotate()
     {
-        rectTransform.DORotate(Vector3.zero, duration).SetEase(animationCurve).Play();
+        rectTransform.DORotate(new Vector3(0,360,0), duration).SetEase(animationCurve).Play();
     }
    
 }
