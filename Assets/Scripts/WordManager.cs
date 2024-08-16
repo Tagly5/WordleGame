@@ -35,7 +35,7 @@ public class WordManager : MonoBehaviour
     public string chosenWord;
     public Word[] words;
 
-    public Color wrongLetterColor, rightPlaceColor, wrongPlaceColor;
+    public Color wrongLetterColor, rightPlaceColor, wrongPlaceColor, selectedRowColor;
     public KeyButton[] keyButtons;
 
     private int _letterIndex;
@@ -45,7 +45,7 @@ public class WordManager : MonoBehaviour
     public GameObject NotAWord;
 
     [SerializeField] TextAsset file;
-
+    private bool isInTime = true;
 
     void Start()
     {
@@ -75,7 +75,8 @@ public class WordManager : MonoBehaviour
             return;
         }
 
-        // NotAWord.gameObject.SetActive(false);
+        FindObjectOfType<AudioManager>().Play("Type");
+
         words[_wordIndex].letters[_letterIndex].text = letter;
         _letterIndex++;
     }
@@ -97,28 +98,37 @@ public class WordManager : MonoBehaviour
 
     public void CheckWord()
     {
-        NotAWord.gameObject.SetActive(false);
+        if (isInTime == true)
+        {
+            isInTime = false;
+            NotAWord.gameObject.SetActive(false);
 
-        List<string> leftLetters = chosenWord.Select(x => x.ToString()).ToList();
-        string wordWritten = "";
+            List<string> leftLetters = chosenWord.Select(x => x.ToString()).ToList();
+            string wordWritten = "";
 
-        for (int i = 0; i < words[_wordIndex].letters.Length; i++)
-        {
-            wordWritten += words[_wordIndex].letters[i].text;
+            for (int i = 0; i < words[_wordIndex].letters.Length; i++)
+            {
+                wordWritten += words[_wordIndex].letters[i].text;
+            }
+
+            if (hasWon)
+            {
+                return;
+            }
+            else if (_letterIndex == _wordMaxLenght && possibleWordsList.Contains(wordWritten, StringComparer.OrdinalIgnoreCase))
+            {
+                StartCoroutine(CheckWordStatus());
+
+            }
+            else
+            {
+                FindObjectOfType<AudioManager>().Play("ErrorWord");
+                NotAWord.gameObject.SetActive(true);
+                isInTime = true;
+            }
         }
 
-        if (hasWon)
-        {
-            return;
-        }
-        else if (_letterIndex == _wordMaxLenght && possibleWordsList.Contains(wordWritten, StringComparer.OrdinalIgnoreCase))
-        {
-            StartCoroutine(CheckWordStatus());
-        }
-        else
-        {
-            NotAWord.gameObject.SetActive(true);
-        }
+
 
     }
 
@@ -152,11 +162,10 @@ public class WordManager : MonoBehaviour
 
             }
 
-            yield return new WaitForSeconds(0.4f);
+            yield return new WaitForSeconds(0.3f);
 
         }
-        _wordIndex++;
-        _letterIndex = 0;
+        FindObjectOfType<AudioManager>().Play("RightLetter");
 
         if (_rightLetterGuesses == _wordMaxLenght)
         {
@@ -174,6 +183,18 @@ public class WordManager : MonoBehaviour
             groupLostEvent.Invoke();
         }
 
+        _wordIndex++;
+        _letterIndex = 0;
+
+        if (!hasWon && _wordIndex <= 8)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                words[_wordIndex].letterBackGround[i].color = selectedRowColor;
+            }
+        }
+
+        isInTime = true;
     }
 
 
