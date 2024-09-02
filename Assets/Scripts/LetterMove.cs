@@ -8,7 +8,7 @@ using UnityEngine;
 public class LetterMove : MonoBehaviour
 {
     [SerializeField] private Transform root;
-    [SerializeField] private Vector2 finalPosition;
+    [SerializeField] private Vector2 offset;
     [SerializeField] private float duration;
     [SerializeField] private AnimationCurve animationCurve;
 
@@ -18,6 +18,7 @@ public class LetterMove : MonoBehaviour
 
     private void OnEnable()
     {
-        root.DOLocalMove(finalPosition, duration).SetEase(animationCurve).Play();
+        Vector2 finalPos = this.transform.localPosition;
+        root.DOLocalMove(finalPos + offset, duration).SetEase(animationCurve).Play();
     }
 }

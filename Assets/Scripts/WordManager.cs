@@ -9,6 +9,8 @@ using Random = UnityEngine.Random;
 using DG.Tweening;
 using UnityEngine.SceneManagement;
 using System.IO;
+using UnityEngine.Rendering;
+using Unity.VisualScripting;
 
 
 [System.Serializable]
@@ -22,53 +24,63 @@ public class Word
 
 public class WordManager : MonoBehaviour
 {
-
+    [HideInInspector]
     public UnityEvent groupWonEvent;
+    [HideInInspector]
     public UnityEvent groupLostEvent;
 
     int _rightLetterGuesses = 0;
-    public bool hasWon;
-    public List<string> wordList = new List<string>();
+    public bool hasWon = false;
+    public List<string> possibleWordsList = new List<string>();
     public string chosenWord;
     public Word[] words;
 
-    public Color wrongLetterColor, rightPlaceColor, wrongPlaceColor;
+    public Color wrongLetterColor, rightPlaceColor, wrongPlaceColor, selectedRowColor;
     public KeyButton[] keyButtons;
 
     private int _letterIndex;
     private int _wordIndex;
 
-    private readonly int _letterQty = 5;
+    private readonly int _wordMaxLenght = 5;
     public GameObject NotAWord;
+    public GameObject NotAWord2;
+    public GameObject chosenWordFinalText;
 
     [SerializeField] TextAsset file;
-
+    private bool isInTime = true;
 
     void Start()
     {
-        String stringas = file.text;
-        String[] wordsSplitted = stringas.Split("\n");
+        //Word database setup
+        String fileText = file.text;
+        String[] wordsSplitted = fileText.Split(",");
         for (int i = 0; i < wordsSplitted.Length; i++)
         {
-            wordList.Add(wordsSplitted[i]);
+            possibleWordsList.Add(wordsSplitted[i]);
         }
+
+        // Selecting the winning word
+        chosenWord = possibleWordsList[Random.Range(0, possibleWordsList.Count)].ToUpper();
         
-        chosenWord = wordList[Random.Range(0, wordList.Count)].ToUpper();
         keyButtons = FindObjectsOfType<KeyButton>();
 
-
         NotAWord.gameObject.SetActive(false);
+        NotAWord2.gameObject.SetActive(false);
 
+        chosenWordFinalText.GetComponent<Text>().text = chosenWord;
     }
 
 
     public void SetLetter(string letter)
     {
-        if (hasWon || _letterIndex == _letterQty)
+        if (hasWon || _letterIndex == _wordMaxLenght)
         {
+            // Se esse bloco de palavras ja tiver ganhado ou perdido, nao atualiza o input
             return;
         }
-        NotAWord.gameObject.SetActive(false);
+
+        FindObjectOfType<AudioManager>().Play("Type");
+
         words[_wordIndex].letters[_letterIndex].text = letter;
         _letterIndex++;
     }
@@ -83,51 +95,70 @@ public class WordManager : MonoBehaviour
         if (_letterIndex != 0)
         {
             _letterIndex--;
-            words[_wordIndex].letters[_letterIndex].text = " ";
+            words[_wordIndex].letters[_letterIndex].text = "";
         }
+
     }
 
     public void CheckWord()
     {
-        if (hasWon)
+        if (isInTime == true)
         {
-            return;
-        }
-        if (_letterIndex == _letterQty)
-        {
-            StartCoroutine(CheckWordStatus());
-        }
-        else
-        {
+            isInTime = false;
             NotAWord.gameObject.SetActive(false);
-            NotAWord.gameObject.SetActive(true);
+            NotAWord2.gameObject.SetActive(false);
+
+            List<string> leftLetters = chosenWord.Select(x => x.ToString()).ToList();
+            string wordWritten = "";
+
+            for (int i = 0; i < words[_wordIndex].letters.Length; i++)
+            {
+                wordWritten += words[_wordIndex].letters[i].text;
+            }
+
+            if (hasWon)
+            {
+                return;
+            }
+            else if (_letterIndex == _wordMaxLenght && possibleWordsList.Contains(wordWritten, StringComparer.OrdinalIgnoreCase))
+            {
+                StartCoroutine(CheckWordStatus());
+
+            }
+            else if(_letterIndex != _wordMaxLenght)
+            {
+                FindObjectOfType<AudioManager>().Play("ErrorWord");
+                NotAWord.gameObject.SetActive(true);
+                isInTime = true;
+            }
+            else
+            {
+                FindObjectOfType<AudioManager>().Play("ErrorWord");
+                NotAWord2.gameObject.SetActive(true);
+                isInTime = true;
+            }
         }
+
+
 
     }
 
     private IEnumerator CheckWordStatus()
     {
+        List<string> leftLetters = chosenWord.Select(x => x.ToString()).ToList();
         for (int i = 0; i < words[_wordIndex].letters.Length; i++)
         {
-
-            List<string> leftLetters = chosenWord.Select(x => x.ToString()).ToList();
             chosenWord = chosenWord.ToUpper();
 
 
-
-            if (words[_wordIndex].letters[i].text.Contains(chosenWord[i]))
+            if (words[_wordIndex].letters[i].text.Contains(chosenWord[i])) // Achou a letra certa na posicao certa!
             {
                 words[_wordIndex].letterBackGround[i].color = rightPlaceColor;
                 leftLetters[i] = string.Empty;
                 SetKeyColor(words[_wordIndex].letters[i].text, rightPlaceColor, true);
 
                 _rightLetterGuesses++;
-                if (_rightLetterGuesses == _letterQty)
-                {
-                    hasWon = true;
-                    groupWonEvent.Invoke();
 
-                }
             }
             else if (chosenWord.Contains(words[_wordIndex].letters[i].text) && leftLetters.Contains(words[_wordIndex].letters[i].text))
             {
@@ -142,17 +173,39 @@ public class WordManager : MonoBehaviour
 
             }
 
-            yield return new WaitForSeconds(0.4f);
+            yield return new WaitForSeconds(0.3f);
 
+        }
+        FindObjectOfType<AudioManager>().Play("RightLetter");
+
+        if (_rightLetterGuesses == _wordMaxLenght)
+        {
+            hasWon = true;
+            groupWonEvent.Invoke();
+
+        }
+        else
+        {
+            _rightLetterGuesses = 0;
         }
 
         if (_wordIndex == 8 && hasWon == false)
         {
             groupLostEvent.Invoke();
         }
+
         _wordIndex++;
         _letterIndex = 0;
 
+        if (!hasWon && _wordIndex <= 8)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                words[_wordIndex].letterBackGround[i].color = selectedRowColor;
+            }
+        }
+
+        isInTime = true;
     }
 
 

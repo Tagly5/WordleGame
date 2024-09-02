@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.SearchService;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -72,19 +71,25 @@ public class GameWinManager : MonoBehaviour
         yield return new WaitForSeconds(1.3f);
 
         winScreen.gameObject.SetActive(true);
+        FindObjectOfType<AudioManager>().Play("WonGame");
     }
     IEnumerator LoseScreenTimeDelay()
     {
         yield return new WaitForSeconds(1.3f);
 
         loseScreen.gameObject.SetActive(true);
+        FindObjectOfType<AudioManager>().Play("LostGame");
+
     }
     public void ReloadGame()
     {
+        FindObjectOfType<AudioManager>().Play("ButtonClick");
+
         SceneManager.LoadScene("Game");
     }
     public void QuitGame()
     {
+        FindObjectOfType<AudioManager>().Play("ButtonClick");
         Application.Quit();
     }
 }
