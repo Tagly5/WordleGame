@@ -43,6 +43,7 @@ public class WordManager : MonoBehaviour
 
     private readonly int _wordMaxLenght = 5;
     public GameObject NotAWord;
+    public GameObject NotAWord2;
     public GameObject chosenWordFinalText;
 
     [SerializeField] TextAsset file;
@@ -64,6 +65,7 @@ public class WordManager : MonoBehaviour
         keyButtons = FindObjectsOfType<KeyButton>();
 
         NotAWord.gameObject.SetActive(false);
+        NotAWord2.gameObject.SetActive(false);
 
         chosenWordFinalText.GetComponent<Text>().text = chosenWord;
     }
@@ -104,6 +106,7 @@ public class WordManager : MonoBehaviour
         {
             isInTime = false;
             NotAWord.gameObject.SetActive(false);
+            NotAWord2.gameObject.SetActive(false);
 
             List<string> leftLetters = chosenWord.Select(x => x.ToString()).ToList();
             string wordWritten = "";
@@ -122,10 +125,16 @@ public class WordManager : MonoBehaviour
                 StartCoroutine(CheckWordStatus());
 
             }
-            else
+            else if(_letterIndex != _wordMaxLenght)
             {
                 FindObjectOfType<AudioManager>().Play("ErrorWord");
                 NotAWord.gameObject.SetActive(true);
+                isInTime = true;
+            }
+            else
+            {
+                FindObjectOfType<AudioManager>().Play("ErrorWord");
+                NotAWord2.gameObject.SetActive(true);
                 isInTime = true;
             }
         }
