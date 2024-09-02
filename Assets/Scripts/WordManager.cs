@@ -43,6 +43,7 @@ public class WordManager : MonoBehaviour
 
     private readonly int _wordMaxLenght = 5;
     public GameObject NotAWord;
+    public GameObject chosenWordFinalText;
 
     [SerializeField] TextAsset file;
     private bool isInTime = true;
@@ -59,11 +60,12 @@ public class WordManager : MonoBehaviour
 
         // Selecting the winning word
         chosenWord = possibleWordsList[Random.Range(0, possibleWordsList.Count)].ToUpper();
-
+        
         keyButtons = FindObjectsOfType<KeyButton>();
 
         NotAWord.gameObject.SetActive(false);
 
+        chosenWordFinalText.GetComponent<Text>().text = chosenWord;
     }
 
 
