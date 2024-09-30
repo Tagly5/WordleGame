@@ -17,6 +17,6 @@ This isa word-guessing game where players try to guess the secret words within a
 You have 9 attempts to guess the correct words!
 
 ## 📍 Play the Game
-You can play Wordle online by clicking [here](#) or through this link:
+You can play it online through this link:
 
 **[Play the Game](https://tagly.itch.io/wordle)**
